@@ -176,7 +176,7 @@ class FlappyBird:
         return
 
     def update(self):
-        self.s_t = self.s_t1
+        self.s_t = self.s_t1[:, :, :]
         return
 
     def getRandomPipe(self):

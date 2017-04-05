@@ -98,10 +98,12 @@ def trainNetwork(s, readout, h_fc1, sess):
     # printing
 
     # get the first state by doing nothing and preprocess the image to 80x80x4
-    do_nothing = np.zeros(ACTIONS)
-    do_nothing[0] = 1
-    x_t, r_0, terminal = game_state.frame_step(do_nothing)
-    s_t = np.stack((x_t, x_t, x_t, x_t), axis=2)
+    # do_nothing = np.zeros(ACTIONS)
+    # do_nothing[0] = 1
+    # x_t, r_0, terminal = game_state.frame_step(do_nothing)
+    # s_t = np.stack((x_t, x_t, x_t, x_t), axis=2)
+
+    s_t = game_state.s_t
 
     # saving and loading networks
     saver = tf.train.Saver(tf.global_variables())
@@ -134,10 +136,15 @@ def trainNetwork(s, readout, h_fc1, sess):
             epsilon -= (INITIAL_EPSILON - FINAL_EPSILON) / EXPLORE
 
         # run the selected action and observe next state and reward
-        x_t1, r_t, terminal = game_state.frame_step(a_t)
-        x_t1 = np.reshape(x_t1, (80, 80, 1))
-        #s_t1 = np.append(x_t1, s_t[:,:,1:], axis = 2)
-        s_t1 = np.append(s_t[:, :, 1:], x_t1, axis=2)
+        # x_t1, r_t, terminal = game_state.frame_step(a_t)
+        # x_t1 = np.reshape(x_t1, (80, 80, 1))
+        # #s_t1 = np.append(x_t1, s_t[:,:,1:], axis = 2)
+        # s_t1 = np.append(s_t[:, :, 1:], x_t1, axis=2)
+
+        game_state.process(action_index)
+        s_t1 = game_state.s_t1
+        r_t = game_state.reward
+        terminal = game_state.terminal
 
         # store the transition in D
         D.append((s_t, a_t, r_t, s_t1, terminal))
@@ -174,6 +181,9 @@ def trainNetwork(s, readout, h_fc1, sess):
 
         # update the old values
         s_t = s_t1
+        # print(np.allclose(game_state.s_t, game_state.s_t1))
+        # game_state.update()
+        # print(np.allclose(game_state.s_t, game_state.s_t1))
         t += 1
 
         # save progress every 10000 iterations
